@@ -6,18 +6,24 @@ const getMenu = async (req, res) => {
     where: { id: user.id },
     select: { restaurant_id: true },
   });
-  const restaurantMenu = await prisma.restaurant.findUnique({
+  const existingRestaurant = await prisma.restaurant.findUnique({
     where: { id: getRestaurantId },
-    include: {
-      menu: {
-        where: { is_active: true },
-      },
+    //   include: {
+    //     menu: {
+    //       where: { is_active: true },
+    //     },
+    //   },
+  });
+  if (!existingRestaurant) {
+    return res.status(404).send({ message: "Restaurant not found" });
+  }
+  const menuItems = await prisma.menuItem.findMany({
+    where: {
+      restaurant_id: existingRestaurant.id,
+      is_active: true,
     },
   });
-
-  return res
-    .status(200)
-    .send({ message: "All menu items", data: restaurantMenu });
+  return res.status(200).send({ message: "All menu items", data: menuItems });
 };
 
 const addMenu = async (req, res) => {
@@ -84,4 +90,28 @@ const deleteMenuItem = async (req, res) => {
   }
 };
 
-module.exports = { getMenu, addMenu, deleteMenuItem };
+const updateMenu = async (req, res) => {
+  const id = req.params.id;
+  const { name, price, description } = req.body;
+  const nameExistanceCheck = await prisma.menuItem.findUnique({
+    where: {
+      name: name,
+    },
+  });
+  if (nameExistanceCheck) {
+    return res.status(400).send({ message: "Name already exist" });
+  }
+  const updatedMenuItem = await prisma.menuItem.update({
+    where: { id: id },
+    data: {
+      ...(name && { name }),
+      ...(price && { price }),
+      ...(description && { description }),
+    },
+  });
+  return res
+    .status(200)
+    .send({ message: "Successfully Updated", data: updatedMenuItem });
+};
+
+module.exports = { getMenu, addMenu, deleteMenuItem, updateMenu };
