@@ -3,6 +3,6 @@ const adminAuthorizationMiddleware = require("../middlewares/adminAuthorizationM
 
 const restaurantRouter = require("express").Router();
 
-restaurantRouter.post("/add", addRestaurant);
+restaurantRouter.post("/add", adminAuthorizationMiddleware, addRestaurant);
 
 module.exports = restaurantRouter;
