@@ -86,4 +86,17 @@ const loginUser = async (req, res) => {
   });
 };
 
-module.exports = { registerUser, loginUser };
+const deleteUser = async (req, res) => {
+  const id = req.user.id;
+  const findUser = await prisma.user.update({
+    where: {
+      id: id,
+    },
+    data: {
+      is_active: false,
+    },
+  });
+  return res.status(200).send({ message: "User account successfully deleted" });
+};
+
+module.exports = { registerUser, loginUser, deleteUser };
