@@ -51,7 +51,8 @@ model MenuItem {
 
 model Table {
   id Int @id @default(autoincrement())
-  is_available Boolean @default(false)
+  table_number String @unique
+  is_available Boolean @default(true)
   restaurant Restaurant @relation(fields: [restaurant_id], references: [id], onDelete: Cascade)
   restaurant_id Int
   order Order[]
@@ -64,6 +65,7 @@ model Order {
   total_amount Float
   items Json[]
   payment Payment[]
+  is_paymentDone Boolean @default(false)
   is_active Boolean @default(true)
 }
 

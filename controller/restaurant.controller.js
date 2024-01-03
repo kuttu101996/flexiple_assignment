@@ -20,9 +20,23 @@ const addRestaurant = async (req, res) => {
       name,
     },
   });
+  let createTables = [];
+  for (let i = 1; i <= 10; i++) {
+    let newTable = await prisma.table.create({
+      data: {
+        restaurant_id: newRestaurant.id,
+        table_number: newRestaurant.name + " - " + i,
+      },
+    });
+    createTables.push(newTable);
+  }
   return res
     .status(200)
-    .send({ message: "Restaurant added", data: newRestaurant });
+    .send({
+      message: "Restaurant added",
+      data: newRestaurant,
+      tables: createTables,
+    });
 };
 
 module.exports = { addRestaurant };
