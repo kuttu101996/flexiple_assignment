@@ -41,7 +41,7 @@ model User {
 
 model MenuItem {
   id Int @id @default(autoincrement())
-  name String
+  name String @unique
   price Int
   description String?
   restaurant Restaurant @relation(fields: [restaurant_id], references: [id])
