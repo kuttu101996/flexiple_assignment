@@ -10,6 +10,7 @@ const managerAuthorizationMiddleware = require("../middlewares/managerAuthorizat
 const menuRouter = require("express").Router();
 
 menuRouter.get("/", authentication, getMenu);
+
 menuRouter.post(
   "/addmenu",
   authentication,

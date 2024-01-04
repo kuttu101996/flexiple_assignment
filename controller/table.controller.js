@@ -68,8 +68,14 @@ const orderAddToTable = async (req, res) => {
     if (!findTable) {
       return res.status(400).send({ message: "No table found" });
     }
-    let total_amount = 0;
-    let items = [];
+    const newOrder = await prisma.order.create({
+      data: {
+        table_id: parseInt(table_id),
+        total_amount: 0,
+        items: [],
+      },
+    });
+    let updatedOrder;
     menuItems.map(async (item, index) => {
       console.log(item);
       const itemCheck = await prisma.menuItem.findFirst({
@@ -78,20 +84,28 @@ const orderAddToTable = async (req, res) => {
           restaurant_id: parseInt(restaurant_id),
         },
       });
-      if (itemCheck) {
-        total_amount += itemCheck.price;
-        items.push(itemCheck);
-      } else {
+      if (!itemCheck) {
         return res.send({ message: "No such item exist" });
+      } else {
+        let workingOrder = await prisma.order.findUnique({
+          where: { id: newOrder.id },
+        });
+        let updatedItems = workingOrder.items.push(itemCheck);
+        updatedOrder = await prisma.order.update({
+          where: {
+            id: newOrder.id,
+          },
+          data: {
+            total_amount: workingOrder.total_amount + itemCheck.price,
+            items: updatedItems,
+          },
+        });
       }
     });
-    const newOrder = await prisma.order.create({
-      data: {
-        table_id: parseInt(table_id),
-        total_amount: total_amount,
-        items: items,
-      },
-    });
+
+    return res
+      .status(200)
+      .send({ message: "Order placed successfully", data: updatedOrder });
   } catch (error) {
     return res.status(500).send({ message: "Internal server error" });
   }

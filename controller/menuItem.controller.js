@@ -51,7 +51,7 @@ const addMenu = async (req, res) => {
       .status(400)
       .send({ message: "No restaurant found with this name." });
   }
-  const findMenu = await prisma.menuItem.findUnique({
+  const findMenu = await prisma.menuItem.findFirst({
     where: {
       name: name,
       restaurant_id: parseInt(findRestaurant.id),
@@ -105,14 +105,14 @@ const deleteMenuItem = async (req, res) => {
 const updateMenu = async (req, res) => {
   const menuId = req.params.id;
   const { name, price, description } = req.body;
-  const nameExistanceCheck = await prisma.menuItem.findFirst({
-    where: {
-      name: name,
-    },
-  });
-  if (nameExistanceCheck) {
-    return res.status(400).send({ message: "Name already exist" });
-  }
+  // const nameExistanceCheck = await prisma.menuItem.findFirst({
+  //   where: {
+  //     name: name,
+  //   },
+  // });
+  // if (nameExistanceCheck) {
+  //   return res.status(400).send({ message: "Name already exist" });
+  // }
   const updatedMenuItem = await prisma.menuItem.update({
     where: { id: parseInt(menuId) },
     data: {
