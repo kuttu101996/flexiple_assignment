@@ -8,8 +8,8 @@ const authentication = require("../middlewares/authentication");
 
 const tableRouter = require("express").Router();
 
-tableRouter.post("/", authentication, reserveTableForCustomer);
-tableRouter.post("/neworder", orderAddToTable);
-tableRouter.post("/payment", madePayment);
+tableRouter.post("/book", authentication, reserveTableForCustomer);
+tableRouter.post("/neworder", authentication, orderAddToTable);
+tableRouter.get("/payment/:id", authentication, madePayment);
 
 module.exports = tableRouter;

@@ -3,24 +3,24 @@ const prisma = require("../db/db.config");
 const reserveTableForCustomer = async (req, res) => {
   try {
     const { restaurant } = req.body;
-    const restaurantTableAvailability = await prisma.restaurant.findUnique({
+    const findRestaurant = await prisma.restaurant.findUnique({
       where: {
         name: restaurant,
       },
-      select: { id: true, available_tables: true },
     });
-    if (!restaurantTableAvailability) {
+    if (!findRestaurant) {
       return res
         .status(400)
         .send({ message: "No restaurant found with the given name" });
     }
-    if (restaurantTableAvailability.available_tables > 0) {
-      const availableTables = await prisma.table.findMany({
-        where: {
-          restaurant_id: restaurantTableAvailability.id,
-          is_available: true,
-        },
-      });
+    // if (findRestaurant.available_tables > 0) {
+    const availableTables = await prisma.table.findMany({
+      where: {
+        restaurant_id: findRestaurant.id,
+        is_available: true,
+      },
+    });
+    if (availableTables.length > 0) {
       const updateAvailability = await prisma.table.update({
         where: {
           id: availableTables[0].id,
@@ -29,16 +29,21 @@ const reserveTableForCustomer = async (req, res) => {
           is_available: false,
         },
       });
-      let updatedRes = await prisma.restaurant.update({
-        where: {
-          id: restaurantTableAvailability.id,
-        },
-        data: {
-          available_tables: restaurantTableAvailability.available_tables - 1,
-        },
+      return res.send({
+        message: "Restaurant successfully assigned",
+        data: updateAvailability,
       });
-      return res.send({ restaurant: updatedRes, avail: updateAvailability });
-    } else {
+    }
+    // let updatedRes = await prisma.restaurant.update({
+    //   where: {
+    //     id: findRestaurant.id,
+    //   },
+    //   data: {
+    //     available_tables: findRestaurant.available_tables - 1,
+    //   },
+    // });
+    // }
+    else {
       return res.status(404).send({
         message: "No table available for this restaurant right now",
       });
@@ -50,13 +55,13 @@ const reserveTableForCustomer = async (req, res) => {
 
 const orderAddToTable = async (req, res) => {
   try {
-    const { table_id, menuItems } = req.body;
-    if (!table_id || !menuItems) {
+    const { table_id, menuItems = [], restaurant_id } = req.body;
+    if (!table_id || !menuItems || !restaurant_id) {
       return res.status(400).send({ message: "Required details not given" });
     }
     const findTable = await prisma.table.findUnique({
       where: {
-        id: table_id,
+        id: parseInt(table_id),
         is_available: false,
       },
     });
@@ -65,20 +70,24 @@ const orderAddToTable = async (req, res) => {
     }
     let total_amount = 0;
     let items = [];
-    menuItems.map(async (item) => {
-      const itemCheck = await prisma.menuItem.findUnique({
+    menuItems.map(async (item, index) => {
+      console.log(item);
+      const itemCheck = await prisma.menuItem.findFirst({
         where: {
           name: item,
+          restaurant_id: parseInt(restaurant_id),
         },
       });
       if (itemCheck) {
         total_amount += itemCheck.price;
         items.push(itemCheck);
+      } else {
+        return res.send({ message: "No such item exist" });
       }
     });
     const newOrder = await prisma.order.create({
       data: {
-        table_id: table_id,
+        table_id: parseInt(table_id),
         total_amount: total_amount,
         items: items,
       },
@@ -90,16 +99,16 @@ const orderAddToTable = async (req, res) => {
 
 const madePayment = async (req, res) => {
   try {
-    const { order_id } = req.body;
-    if (!order_id) {
-      return res.status(400).send({ message: "No order found" });
-    }
+    const order_id = req.params.id;
     const findOrder = await prisma.order.findUnique({
       where: {
         id: order_id,
       },
     });
-    const findTable = await prisma.table.update({
+    if (!order_id || !findOrder) {
+      return res.status(400).send({ message: "No order found" });
+    }
+    const updateTable = await prisma.table.update({
       where: {
         id: findOrder.table_id,
       },
@@ -107,20 +116,20 @@ const madePayment = async (req, res) => {
         is_available: true,
       },
     });
-    const findRestaurant = await prisma.restaurant.update({
-      where: {
-        id: findTable.restaurant_id,
-      },
-    });
-    const updatedRestaurant = await prisma.restaurant.update({
-      where: { id: findTable.restaurant_id },
-      data: {
-        available_tables: findRestaurant.available_tables + 1,
-      },
-    });
+    // const findRestaurant = await prisma.restaurant.update({
+    //   where: {
+    //     id: findTable.restaurant_id,
+    //   },
+    // });
+    // const updatedRestaurant = await prisma.restaurant.update({
+    //   where: { id: findTable.restaurant_id },
+    //   data: {
+    //     available_tables: findRestaurant.available_tables + 1,
+    //   },
+    // });
     const newPayment = await prisma.payment.create({
       data: {
-        order_id: order_id,
+        order_id: parseInt(order_id),
         amount: findOrder.total_amount,
       },
     });

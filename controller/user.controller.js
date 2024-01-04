@@ -69,6 +69,7 @@ const loginUser = async (req, res) => {
   const findUser = await prisma.user.findUnique({
     where: {
       email: email,
+      is_active: true,
     },
   });
   if (!findUser) {
@@ -89,34 +90,30 @@ const loginUser = async (req, res) => {
 const changeUserRole = async (req, res) => {
   const loggedUser = req.user;
   const id = req.params.id;
-  if (loggedUser.role === "ADMIN" || loggedUser.role === "SUPER_ADMIN") {
-    try {
-      const findUser = await prisma.user.findUnique({
-        where: {
-          id: id,
-        },
-      });
-      if (!findUser) {
-        return res
-          .status(400)
-          .send({ message: "No user found with the given id" });
-      }
-      const updatedUser = await prisma.user.update({
-        where: {
-          id: id,
-        },
-        data: {
-          role: "MANAGER",
-        },
-      });
-      res
-        .status(200)
-        .send({ message: "User role updated successfully", data: updatedUser });
-    } catch (error) {
-      res.status(500).send({ message: "Internal Server Error" });
+  try {
+    const findUser = await prisma.user.findUnique({
+      where: {
+        id: id,
+      },
+    });
+    if (!findUser) {
+      return res
+        .status(400)
+        .send({ message: "No user found with the given id" });
     }
-  } else {
-    res.status(403).send({ message: "Not authorized to update user role" });
+    const updatedUser = await prisma.user.update({
+      where: {
+        id: id,
+      },
+      data: {
+        role: "MANAGER",
+      },
+    });
+    res
+      .status(200)
+      .send({ message: "User role updated successfully", data: updatedUser });
+  } catch (error) {
+    res.status(500).send({ message: "Internal Server Error" });
   }
 };
 

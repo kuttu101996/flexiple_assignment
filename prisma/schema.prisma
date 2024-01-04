@@ -11,13 +11,13 @@ datasource db {
 }
 
 model Restaurant {
-  id Int @id @default(autoincrement())
-  name String @unique
-  available_tables Int @default(10)
-  user User[]
-  table Table[]
-  menu MenuItem[]
-  is_active Boolean @default(true)
+  id        Int        @id @default(autoincrement())
+  name      String     @unique
+  // available_tables Int @default(10)
+  user      User[]
+  table     Table[]
+  menu      MenuItem[]
+  is_active Boolean    @default(true)
 }
 
 enum UserRole {
@@ -28,51 +28,51 @@ enum UserRole {
 }
 
 model User {
-  id String @id @default(uuid())
-  name String?
-  email String @unique
-  password String?
-  role UserRole @default(STAFF)
-  created_at DateTime @default(now())
-  restaurant Restaurant? @relation(fields: [restaurant_id], references: [id], onDelete: Cascade)
+  id            String      @id @default(uuid())
+  name          String?
+  email         String      @unique
+  password      String?
+  role          UserRole    @default(STAFF)
+  created_at    DateTime    @default(now())
+  restaurant    Restaurant? @relation(fields: [restaurant_id], references: [id], onDelete: Cascade)
   restaurant_id Int?
-  is_active Boolean @default(true)
+  is_active     Boolean     @default(true)
 }
 
 model MenuItem {
-  id Int @id @default(autoincrement())
-  name String @unique
-  price Int
-  description String?
-  restaurant Restaurant @relation(fields: [restaurant_id], references: [id])
+  id            Int        @id @default(autoincrement())
+  name          String
+  price         Int
+  description   String?
+  restaurant    Restaurant @relation(fields: [restaurant_id], references: [id], onDelete: Cascade)
   restaurant_id Int
-  is_active Boolean @default(true)
+  is_active     Boolean    @default(true)
 }
 
 model Table {
-  id Int @id @default(autoincrement())
-  table_number String @unique
-  is_available Boolean @default(true)
-  restaurant Restaurant @relation(fields: [restaurant_id], references: [id], onDelete: Cascade)
+  id            Int        @id @default(autoincrement())
+  table_number  String     @unique
+  is_available  Boolean    @default(true)
+  restaurant    Restaurant @relation(fields: [restaurant_id], references: [id], onDelete: Cascade)
   restaurant_id Int
-  order Order[]
+  order         Order[]
 }
 
 model Order {
-  id Int @id @default(autoincrement())
-  table Table @relation(fields: [table_id], references: [id], onDelete: Cascade)
-  table_id Int
-  total_amount Float
-  items Json[]
-  payment Payment[]
-  is_paymentDone Boolean @default(false)
-  is_active Boolean @default(true)
+  id             Int       @id @default(autoincrement())
+  table          Table     @relation(fields: [table_id], references: [id], onDelete: Cascade)
+  table_id       Int
+  total_amount   Float
+  items          Json[]
+  payment        Payment[]
+  is_paymentDone Boolean   @default(false)
+  is_active      Boolean   @default(true)
 }
 
 model Payment {
-  id Int @id @default(autoincrement())
-  order Order @relation(fields: [order_id], references: [id], onDelete: Cascade)
-  order_id Int
-  amount Float
+  id           Int      @id @default(autoincrement())
+  order        Order    @relation(fields: [order_id], references: [id], onDelete: Cascade)
+  order_id     Int
+  amount       Float
   payment_date DateTime @default(now())
 }

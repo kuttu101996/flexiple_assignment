@@ -17,13 +17,13 @@ menuRouter.post(
   addMenu
 );
 menuRouter.post(
-  "/:id",
+  "/delete/:id",
   authentication,
   managerAuthorizationMiddleware,
   deleteMenuItem
 );
 menuRouter.patch(
-  "/:id",
+  "/update/:id",
   authentication,
   managerAuthorizationMiddleware,
   updateMenu
